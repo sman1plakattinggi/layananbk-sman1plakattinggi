@@ -1,0 +1,169 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Layanan BK - SMAN 1 Plakat Tinggi</title>
+  <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+  <script>
+    let semuaData = JSON.parse(localStorage.getItem('semuaData')) || [];
+
+    function simpanData() {
+      localStorage.setItem('semuaData', JSON.stringify(semuaData));
+    }
+
+    function tambahRiwayat(data) {
+      semuaData.push({ ...data, balasan: "" });
+      simpanData();
+      renderRiwayat();
+    }
+
+    function hapusData(index) {
+      if (confirm('Yakin ingin menghapus data ini?')) {
+        semuaData.splice(index, 1);
+        simpanData();
+        renderRiwayat();
+        tampilkanSemuaData();
+      }
+    }
+
+    function renderRiwayat() {
+      const list = document.getElementById('riwayatList');
+      list.innerHTML = '';
+      semuaData.forEach((data) => {
+        const item = document.createElement('li');
+        item.className = 'border-b py-2';
+        item.innerHTML = `<strong>${data.nama}</strong> - ${data.jenis}<br>"${data.masalah}"<br><span class="text-green-700">Balasan: ${data.balasan || 'Belum ada balasan'}</span>`;
+        list.appendChild(item);
+      });
+    }
+
+    function tampilkanSemuaData() {
+      const tabel = document.getElementById('tabelData');
+      tabel.innerHTML = '';
+      semuaData.forEach((data, index) => {
+        const row = document.createElement('tr');
+        row.innerHTML = `
+          <td class="border px-2 py-1 text-sm">${index + 1}</td>
+          <td class="border px-2 py-1 text-sm">${data.nisn}</td>
+          <td class="border px-2 py-1 text-sm">${data.nama}</td>
+          <td class="border px-2 py-1 text-sm">${data.kelas}</td>
+          <td class="border px-2 py-1 text-sm">${data.jenis}</td>
+          <td class="border px-2 py-1 text-sm">${data.masalah}</td>
+          <td class="border px-2 py-1 text-sm">
+            <textarea class="w-full p-1 border rounded text-sm" onchange="updateBalasan(${index}, this.value)">${data.balasan || ''}</textarea>
+            <button onclick="hapusData(${index})" class="mt-1 bg-red-500 text-white px-2 py-1 rounded text-xs hover:bg-red-600">Hapus</button>
+          </td>
+        `;
+        tabel.appendChild(row);
+      });
+    }
+
+    function updateBalasan(index, value) {
+      semuaData[index].balasan = value;
+      simpanData();
+      renderRiwayat();
+    }
+
+    document.addEventListener("DOMContentLoaded", () => {
+      renderRiwayat();
+      const form = document.getElementById("formBK");
+      form.addEventListener("submit", (e) => {
+        e.preventDefault();
+        const inputs = form.querySelectorAll("input, select, textarea");
+        const data = {
+          nisn: inputs[0].value,
+          nama: inputs[1].value,
+          kelas: inputs[2].value,
+          jenis: inputs[3].value,
+          masalah: inputs[4].value
+        };
+
+        tambahRiwayat(data);
+        alert("Pengajuan konseling berhasil dikirim.");
+        form.reset();
+      });
+    });
+
+    function loginAdmin() {
+      const pass = document.getElementById('adminPass').value;
+      if (pass === 'bkadmin2025') {
+        document.getElementById('adminPanel').classList.remove('hidden');
+        tampilkanSemuaData();
+        alert("Login berhasil sebagai admin.");
+      } else {
+        alert("Password salah.");
+      }
+    }
+  </script>
+</head>
+<body class="bg-gradient-to-br from-blue-500 to-yellow-300 min-h-screen">
+  <header class="bg-white shadow p-4 text-center">
+    <h1 class="text-2xl font-bold">Layanan Bimbingan Konseling</h1>
+    <p class="text-sm text-gray-600">SMAN 1 Plakat Tinggi</p>
+  </header>
+
+  <main class="p-6 max-w-5xl mx-auto">
+    <section class="bg-white p-6 rounded-xl shadow mb-6">
+      <h2 class="text-xl font-semibold mb-4">Formulir Pengajuan Konseling</h2>
+      <form id="formBK" class="space-y-4">
+        <input type="text" placeholder="NISN" class="w-full border p-2 rounded" required>
+        <input type="text" placeholder="Nama Lengkap" class="w-full border p-2 rounded" required>
+        <input type="text" placeholder="Kelas" class="w-full border p-2 rounded" required>
+        <select class="w-full border p-2 rounded" required>
+          <option value="">Pilih Jenis Konseling</option>
+          <option value="pribadi">Pribadi</option>
+          <option value="sosial">Sosial</option>
+          <option value="karier">Karier</option>
+          <option value="belajar">Belajar</option>
+        </select>
+        <textarea placeholder="Tuliskan masalah atau keperluan Anda" class="w-full border p-2 rounded" rows="4" required></textarea>
+        <button type="submit" class="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700">Kirim Pengajuan</button>
+      </form>
+    </section>
+
+    <section class="bg-white p-6 rounded-xl shadow mb-6">
+      <h2 class="text-xl font-semibold mb-4">Riwayat Konseling</h2>
+      <ul id="riwayatList" class="list-disc pl-5 text-sm text-gray-700"></ul>
+    </section>
+
+    <section class="bg-white p-6 rounded-xl shadow mb-6">
+      <h2 class="text-xl font-semibold mb-4">Login Admin Guru BK</h2>
+      <form onsubmit="event.preventDefault(); loginAdmin();" class="space-y-4">
+        <input type="password" id="adminPass" placeholder="Masukkan password admin" class="w-full border p-2 rounded" required>
+        <button type="submit" class="bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700">Login</button>
+      </form>
+      <div id="adminPanel" class="mt-4 hidden">
+        <h3 class="text-lg font-bold mb-2">Panel Admin</h3>
+        <p class="mb-2">Daftar semua pengajuan konseling:</p>
+        <div class="overflow-auto">
+          <table class="table-auto w-full border text-sm">
+            <thead>
+              <tr class="bg-gray-100">
+                <th class="border px-2 py-1">No</th>
+                <th class="border px-2 py-1">NISN</th>
+                <th class="border px-2 py-1">Nama</th>
+                <th class="border px-2 py-1">Kelas</th>
+                <th class="border px-2 py-1">Jenis</th>
+                <th class="border px-2 py-1">Masalah</th>
+                <th class="border px-2 py-1">Balasan Guru BK</th>
+              </tr>
+            </thead>
+            <tbody id="tabelData"></tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+
+    <section class="bg-white p-6 rounded-xl shadow">
+      <h2 class="text-xl font-semibold mb-4">Tentang Layanan BK</h2>
+      <p>Layanan ini disediakan untuk membantu siswa dalam menyelesaikan permasalahan pribadi, sosial, akademik, maupun karier. Silakan isi formulir di atas untuk mengajukan sesi konseling.</p>
+    </section>
+  </main>
+
+  <footer class="text-center p-4 text-gray-600 text-sm">
+    &copy; 2025 SMAN 1 Plakat Tinggi - Layanan BK
+  </footer>
+
+</body>
+</html>
